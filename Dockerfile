@@ -29,8 +29,8 @@ RUN apt-get -y update && apt-get install -y \
     lsof wget vim sudo rsync cron mysql-client openssh-server supervisor locate mplayer valgrind certbot python-certbot-apache dnsutils tcpdump gstreamer1.0-tools
 
 
-# RUN apt-get install -y libx264-dev libmatroska-dev libopus-dev libssl1.0-dev libtheora-dev libogg-dev python3-pip flex bison libsoup2.4-dev libjpeg-dev nasm libvpx-dev
-# RUN sudo pip3 install meson ninja
+RUN apt-get install -y libx264-dev libmatroska-dev libopus-dev libssl1.0-dev libtheora-dev libogg-dev python3-pip flex bison libsoup2.4-dev libjpeg-dev nasm libvpx-dev
+RUN sudo pip3 install meson ninja
 # RUN git clone https://gitlab.freedesktop.org/gstreamer/gst-build
 # WORKDIR /gst-build
 # RUN git log -n 1 HEAD
@@ -39,12 +39,25 @@ RUN apt-get -y update && apt-get install -y \
 # RUN mkdir builddir
 # # RUN meson builddir
 # RUN meson builddir
-# RUN ninja -C builddir update
+# # RUN ninja -C builddir update
 # RUN ninja install -C builddir
 # RUN ldconfig
 # RUN which gst-launch-1.0
 # RUN ldd /usr/local/bin/gst-launch-1.0
 # RUN gst-launch-1.0
+
+
+RUN apt-get remove -y libnice-dev libnice10 && \
+    echo "deb http://deb.debian.org/debian  stretch-backports main" >> /etc/apt/sources.list && \
+    apt-get  update && \
+    apt-get install -y gtk-doc-tools libgnutls28-dev -t stretch-backports  && \
+    git clone https://gitlab.freedesktop.org/libnice/libnice.git && \
+    cd libnice && \
+    git checkout 5969b34e3acd9150506ed8d9d109c73665858f3e && \
+    bash autogen.sh && \
+    meson builddir && \
+    ninja -C builddir  &&  \
+    ninja -C builddir install
 
 
 # FFmpeg build section
@@ -244,18 +257,7 @@ RUN SRTP="2.2.0" && apt-get remove -y libsrtp0-dev && wget https://github.com/ci
 
 
 
-# March, 2019 1 commit 67807a17ce983a860804d7732aaf7d2fb56150ba
-RUN apt-get remove -y libnice-dev libnice10 && \
-    echo "deb http://deb.debian.org/debian  stretch-backports main" >> /etc/apt/sources.list && \
-    apt-get  update && \
-    apt-get install -y gtk-doc-tools libgnutls28-dev -t stretch-backports  && \
-    git clone https://gitlab.freedesktop.org/libnice/libnice.git && \
-    cd libnice && \
-    git checkout 67807a17ce983a860804d7732aaf7d2fb56150ba && \
-    bash autogen.sh && \
-    ./configure --prefix=/usr && \
-    make && \
-    make install
+
 
 
 RUN COTURN="4.5.0.8" && wget https://github.com/coturn/coturn/archive/$COTURN.tar.gz && \
@@ -350,3 +352,13 @@ CMD nginx && janus
 #     ./configure && \
 #     make && \
 #     make install
+
+EXPOSE 8088
+EXPOSE 7088
+EXPOSE 7188
+EXPOSE 8078
+EXPOSE 8188
+EXPOSE 8050
+EXPOSE 8888
+EXPOSE 3478
+EXPOSE 80
